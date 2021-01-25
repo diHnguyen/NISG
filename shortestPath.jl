@@ -1,8 +1,9 @@
-function gx_bound(edge, A, c, origin, x_now, T, scenNum)
-    println(1)
+function gx_bound(edge, Len, c, origin, d, x_now, T, scenNum)
+#     println(1)
     #println(f,"Current CELL's LB = ", c_L)
     #println(f,"Current CELL's UB = ", c_U)
     #println(f, "Current interdiction x = ", x_now)
+    
     start_node = edge[:,1]
     end_node = edge[:,2]
 
@@ -29,8 +30,8 @@ function gx_bound(edge, A, c, origin, x_now, T, scenNum)
         _x
     end
 
-
-    graph = Graph(no_node)
+#     println("Inside function")
+    graph = SimpleDiGraph(no_node)
     distmx = Inf*ones(no_node, no_node)
 
     # Adding links to the graph
@@ -43,42 +44,66 @@ function gx_bound(edge, A, c, origin, x_now, T, scenNum)
     state = dijkstra_shortest_paths(graph, origin, distmx)
     label = state.dists
     pred = state.parents
+#     println("pred = ", pred)
     b_arc = ""
     
-    for i = 1: length(state.parents)
-        if state.parents[i] != 0 
-            b_arc = string(b_arc, "(", state.parents[i], ",", i, ")")
-        end
-    end
+    y_Set = zeros(Int64,(scenNum, Len))#Array{Int64, (scenNum, A)}
+    g_Set = zeros(scenNum)
     
+#     #Retrieve shortest paths:
+#     for k in T
+#         while pred(k) != origin
+            
+#         end
+#     end
+    
+#     for i = 1: length(state.parents)
+#         if state.parents[i] != 0 
+#             b_arc = string(b_arc, "(", state.parents[i], ",", i, ")")
+#         end
+#     end
     # Retrieving the shortest path
-    path = enumerate_paths(state, destination)
+#     path = enumerate_paths(state, destination)
     
     #parents = LightGraphs.DijkstraState(state, destination)
 
     # Retrieving the 'x' variable in a 0-1 vector
-    y = getShortestX(state, start_node, end_node, origin, destination)
+#     y = getShortestX(state, start_node, end_node, origin, destination)
     
-    y_Set = ones((scenNum, A))#Array{Int64, (scenNum, A)}
+    
 #     y_Set[1,:] = y
-    for i = 2:scenNum
-        y_Set[1,:] = getShortestX(state, start_node, end_node, origin, T[i])
-    end
-    #println(f,"y vector:", y)
     
-    gx = sum(c[i]*y[i] for i = 1:no_link)    
-#     SP = sum(c[i]*y[i] for i = 1:length(c))
-    T = zeros(Int64,A)
-    for i = 1:A
-        if pred[edge[i,2]] == edge[i,1]
-#             push!(T, 1)
-            T[i]=1
-#         else
-#             push!(T, 0)
+    for i = 1:scenNum
+        y = getShortestX(state, start_node, end_node, origin, T[i])
+#         println("Inside function")
+#         println("targetNode = ", T[i])
+#         println("pred of target = ", pred[T[i]])
+        if pred[T[i]] == 0
+            g_Set[i] = Len + 1
+#             y_Set[i,:] = zeros(Int64, Len)
+        else
+            g_Set[i] = sum(c[i]*y[i] for i = 1:no_link)    
+            y_Set[i,:] = y
+#             println(i, ". y = ", findall(y.==1), "; g = ", g_Set[i])
         end
     end
+#     println("g_Set = ", g_Set)
+    #println(f,"y vector:", y)
+    
+#     gx = sum(c[i]*y[i] for i = 1:no_link)    
+#     SP = sum(c[i]*y[i] for i = 1:length(c))
+    
+#     T = zeros(Int64,A)
+#     for i = 1:A
+#         if pred[edge[i,2]] == edge[i,1]
+# #             push!(T, 1)
+#             T[i]=1
+# #         else
+# #             push!(T, 0)
+#         end
+#     end
 
-    y_index = findall(y .== 1)
+#     y_index = findall(y .== 1)
 
     #println("Minimum Spanning Tree: ", T)
     #println("Shortest path y = ", y)
@@ -87,5 +112,5 @@ function gx_bound(edge, A, c, origin, x_now, T, scenNum)
     #println("Minimum Spanning Tree =", pred)
     #println("Node label =" ,label)
 
-    return y, gx, T, path, y_Set
+    return y_Set, g_Set
 end
