@@ -79,7 +79,7 @@ function gx_bound(edge, Len, c, origin, d, x_now, T, scenNum)
 #         println("targetNode = ", T[i])
 #         println("pred of target = ", pred[T[i]])
         if pred[T[i]] == 0
-            g_Set[i] = Len + 1
+            g_Set[i] = M + 1
 #             y_Set[i,:] = zeros(Int64, Len)
         else
             g_Set[i] = sum(c[i]*y[i] for i = 1:no_link)    
