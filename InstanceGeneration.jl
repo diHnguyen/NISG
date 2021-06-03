@@ -12,7 +12,7 @@ using CSV
 
 #Specify number of arcs and nodes
 
-global N = 10
+global N = 6
 
 #Probability an arc (i,j) is present/Density
 global p = 0.4
