@@ -42,16 +42,23 @@ function testGraph()
         if length(incoming[incoming.==N]) >= 1
             for i = 2:N-1
                 if length(outgoing[outgoing.==i]) == 0
-                    use = false
+#                     use = false
                     push!(toSink, i)
                 end
                 if length(incoming[incoming.==i]) == 0
-                    use = false
+#                     use = false
                     push!(toSource, i)
+                end
+                if length(outgoing[outgoing.==i]) == 0 && length(incoming[incoming.==i]) == 0
+                    use = false 
+                    break
                 end
             end
         end
+    else 
+        use = false
     end
+    println("use = ", use)
     return use, toSource, toSink
 end
 function addAdditionalArcs(toSource,toSink)
@@ -65,40 +72,46 @@ function addAdditionalArcs(toSource,toSink)
     return arcs
 end
 
-for ins = 1:10
+global ins = 0
+while ins <10
+    global ins, N
     global arcs = Array{Int64}(undef, (0,2))
-    arcs = makeArcs(N,p)
     global numArcs
+    ins +=1
+    println("\nIns = ", ins)
+    arcs = makeArcs(N,p)
     numArcs = length(arcs[:,1])
-    println(arcs)
-    println("numArcs = ", numArcs)
-
-    # arcs = addAdditionalArcs(toSource, toSink)
-    # println(arcs)
-
-
+    println("A = ", arcs)
+#     println("numArcs = ", numArcs)
 
     use, toSource, toSink = testGraph()
-    println("use = ", false)
-    println("toSource = ", toSource)
-    println("toSink = ", toSink)
+    
+    if use == false
+        println("Regenerate ins ", ins)
+        ins -=1
+    else
+        println("Use ins ", ins)
+#         println("use = ", false)
+#         println("toSource = ", toSource)
+#         println("toSink = ", toSink)
 
-    arcs = addAdditionalArcs(toSource,toSink)
+        arcs = addAdditionalArcs(toSource,toSink)
 
-    println(arcs)
-    d = rand(0:10, length(arcs[:,1]))
-    q = rand(0:10, length(arcs[:,1]))./10
+        println("Add arcs. A = ", arcs)
+        d = rand(0:10, length(arcs[:,1]))
+        q = rand(0:10, length(arcs[:,1]))./10
 
-    outfile = "C:/Users/din/Documents/GitHub/UncertainTarget/TestInstances/Ins"*string(ins)*".jl"
-    io = open(outfile, "w") #do io
-    #     write(io, "arcs = ", arcs )
-    #     write(io, "d = ", d )
-    #     write(io, "q = ", q )
-    # end
-    println(io, "arcs = ", arcs )
-    println(io, "d = ", d )
-    println(io, "q = ", q )
-    close(io)
+        outfile = "C:/Users/din/Documents/GitHub/UncertainTarget/TestInstances/Ins"*string(ins)*".jl"
+        io = open(outfile, "w") #do io
+        println(io, "global arcs = ", arcs )
+        println(io, "global d = ", d )
+        println(io, "global q = ", q )
+        println(io, "global b = 5")
+        println(io, "global origin = 1")
+        println(io, "global destination = ", N)
+        println(io, "#Density = ", p)
+        close(io)
+    end
 end
 
 # x = length(arcs[:,1])
