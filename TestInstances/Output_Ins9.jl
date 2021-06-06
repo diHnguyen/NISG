@@ -11,3 +11,11 @@ x = [4, 7] ; v** = 0.20289855072463767 ; minCut = [8, 9, 10] ; [0.289855, 0.2028
 x = [4, 10] ; v** = 0.4117647058823529 ; minCut = [8, 9] ; [0.588235, 0.411765]
 x = [2, 3, 4] ; v** = 0.4117647058823529 ; minCut = [8, 9] ; [0.588235, 0.411765]
 x = [2, 4, 9] ; v** = 0.2545454545454545 ; minCut = [8, 10] ; [0.363636, 0.636364]
+#Enumerate Cuts
+x = [1] : Size of min Cut on Residual Network = 4.0
+x = [2, 7] : Size of min Cut on Residual Network = 4.0
+x = [2, 10] : Size of min Cut on Residual Network = 4.0
+x = [4, 7] : Size of min Cut on Residual Network = 4.0
+x = [4, 10] : Size of min Cut on Residual Network = 4.0
+x = [2, 3, 4] : Size of min Cut on Residual Network = 2.0
+x = [2, 4, 9] : Size of min Cut on Residual Network = 3.0
