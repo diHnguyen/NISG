@@ -34,7 +34,10 @@ for interdict in X
         end
     end
     A_C = mincut(g,weights(g))
-    println(io, "x = ", interdict, " : Size of min Cut on Residual Network = ", A_C[2])
+#     A_C = mincut(g,1,4,weights(g)) #,algorithm=EdmondsKarpAlgorithm())
+#     println(io, "x = ", interdict, " : Size of min Cut on Residual Network = ", A_C[2])
+    println(A_C)
+    
 end
 close(io)
 

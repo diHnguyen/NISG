@@ -8,3 +8,10 @@ x = [2, 3, 5, 7] ; No monitoring is required.
 #Enumerate Cuts
 x = [4, 5, 7] : Size of min Cut on Residual Network = 3.0
 x = [2, 3, 5, 7] : Size of min Cut on Residual Network = 2.0
+#Enumerate Cuts
+#Enumerate Cuts
+#Enumerate Cuts
+x = [4, 5, 7] : Size of min Cut on Residual Network = 3.0
+x = [2, 3, 5, 7] : Size of min Cut on Residual Network = 2.0
+#Enumerate Cuts
+#Enumerate Cuts

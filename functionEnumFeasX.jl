@@ -1,4 +1,5 @@
-function EnumX(arcs,b,numArcs,d)
+using Combinatorics
+function EnumX(arcs,b,numArcs,d) 
     X = findall(d.<=b)
     Len = length(X)
     X = combinations(X) |> collect

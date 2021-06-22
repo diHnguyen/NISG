@@ -4,4 +4,5 @@ global q = [0.8, 0.4, 0.6, 0.9, 0.4, 0.6, 0.1, 0.4, 0.9]
 global b = 5
 global origin = 1
 global destination = 6
+global P = [[1,8],[2,9],[3],[4,6],[5,7]]
 #Density = 0.4
