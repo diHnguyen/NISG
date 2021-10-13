@@ -5,7 +5,8 @@ function shortestPath_BellmanFord(x_now, y_now, edge, q, numArcs, M_set, numY)
 #     println("Current interdiction x = ", x_now)
 #     global q, numArcs, R,M_set
     
-    c_g = zeros(numArcs)
+#     c_g = zeros(numArcs)
+    c_g = ones(numArcs) #Because of new definition of H with the +1
 #     println
     #Get arc cost
     for a = 1:numArcs
