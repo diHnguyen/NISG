@@ -13,12 +13,13 @@ setparams!(gurobi_env, Heuristics=0.0, Cuts = 0, OutputFlag = 0)
 # println(io,"Instance \tPath \tExact \tApprox")
 # global p_exact = []
 # global p_approx = []
-global ins = 1 #:10
+global ins = 2 #:10
 
 include("./Ins"*string(ins)*".jl")
 include("./functionEnumFeasX.jl")
 include("./functionFindQ.jl")
 include("./functionShortestPathBellmanFord.jl")
+include("./functionDefinitionH.jl")
 # include("./findExactUndetectionPr.jl")
 include("./functionGenMonitoring.jl")
 include("./functionSolve2ndStage.jl")
@@ -30,7 +31,7 @@ global M_set = [EnumY[1]] #EnumX(arcs, b_y, numArcs, d_y)
 global numY = 1 
 global R = 10^6
 #Add at least one path to the initial P_set
-global P_set = [[1,8]]
+# global P_set = [[1,8]]
 global numPaths = 1
 # global cRefNum = 200
 # global constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
@@ -41,26 +42,32 @@ println("X_feas = ", X_feas)
 println("Starting M_set ", M_set, ", P_set = ", P_set)
 global Y_sol = []
 
-for x_i = 1:1#length(X_feas)
+for x_i = 1:length(X_feas)
     global numArcs, arcs, d_x, q, b_x, origin, destination, R, d_y, b_y #, EnumY
     x_now = X_feas[x_i]
     println("\n\nx = ", x_now)
     M_set = [EnumY[1]]
     numY = 1 #length(M_set)
-    P_set = [[1,8]]
+#     P_set = [[1,8]]
+    P_set = [[1,7]]
     numPaths = 1
     
     cRefNum = 200
     constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
     
     M_set, P_set, current_Obj, y_now, numY, numPaths = solve2ndStage(x_now)
-    println("1. Obj Val for x = ", x_now,", y = ", y_now," is ", current_Obj)
+    
+    println("1. \tObj Val = ", current_Obj)
+    println("\tx = ", x_now)
+    println("\tMonitoring ", M_set[findall(y_now.>0)]," with probability ", y_now[y_now.>0])
+    println("1. M_set ", M_set, ", P_set ", P_set)
     
     
     P_set = copy(P)
     M_set = copy(EnumY)
     numPaths = length(P_set)
     numY = length(M_set)
+    println("M = ", M_set)
     MP = Model(() -> Gurobi.Optimizer(gurobi_env))
     @variable(MP, x[1:numArcs], Bin)
     @variable(MP, y[1:numY] >= 0)
@@ -73,12 +80,18 @@ for x_i = 1:1#length(X_feas)
     end
     for i = 1:numPaths
          @constraint(MP, u >= sum(
-                sum(log(1-q[a]) for a in intersect(P_set[i],M_set[m]))*y[m] for m = 1:numY) - 10^6*(sum(x[a] for a in P_set[i])) ) 
+                (1+sum(log(1-q[a]) for a in intersect(P_set[i],M_set[m])))*y[m] for m = 1:numY) - 10^6*(sum(x[a] for a in P_set[i])) ) 
+#          @constraint(MP, u >= sum((1+sum(log(1-q[a]) for a in intersect(P_set[numPaths], M_set[m])))*y[m] for m = 1:numY) - R*(sum(x_now[a] for a in P_set[numPaths])) )
     end
     optimize!(MP)
 #     println("\nSolve once given P_set and M_set:")
-#     println("P = ", P_set)
-#     println("M = ", M_set)
+    println("P = ", P_set)
+    println("M = ", M_set)
 #     println(MP)
-    println("2. Obj Val for x = ", findall(JuMP.value.(x).>0),", y = ", JuMP.value.(y)," is ", JuMP.objective_value.(MP))
+    y2=JuMP.value.(y)
+    println("2. \tObj Val = ", current_Obj)
+    println("\tx = ", x_now)
+    println("\tMonitoring ", M_set[findall(y2.>0)]," with probability ", y2[y2.>0])
+#     println("2. Obj Val for x = ", findall(JuMP.value.(x).>0),", y = ", y2[findall(y2.>0)] ," is ", JuMP.objective_value.(MP))
+#     println("2. M_set ", M_set[findall(y2.>0)])
 end

@@ -1,12 +1,11 @@
-function shortestPath_BellmanFord(x_now, y_now, edge, q, numArcs, M_set, numY)
+function shortestPath_BellmanFord(x_now, y_now, edge)
     
     #println(f,"Current CELL's LB = ", c_L)
     #println(f,"Current CELL's UB = ", c_U)
 #     println("Current interdiction x = ", x_now)
-#     global q, numArcs, R,M_set
+    global q, numArcs, R,M_set
     
-#     c_g = zeros(numArcs)
-    c_g = ones(numArcs) #Because of new definition of H with the +1
+    c_g = zeros(numArcs)
 #     println
     #Get arc cost
     for a = 1:numArcs
@@ -18,6 +17,8 @@ function shortestPath_BellmanFord(x_now, y_now, edge, q, numArcs, M_set, numY)
                     c_g[a] = c_g[a] - log(1-q[a])*y_now[m]
                 end
             end
+#         if x_now[a] > 0
+        
         end
     end
     

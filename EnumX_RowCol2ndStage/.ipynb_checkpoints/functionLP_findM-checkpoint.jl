@@ -58,8 +58,7 @@ function solveLP_findM(x_now)
 #                     println("P = ", path, "; M = ", M_set[numY])
                 McapP = intersect(P_set[i], M_set[numY])
                 if isempty(McapP) == false
-                    set_normalized_coefficient(constr[i], new_var[numY], 
-                        -(1+sum(log(1-q[a]) for a in McapP)) )
+                    set_normalized_coefficient(constr[i], new_var[numY], -(1+sum(log(1-q[a]) for a in McapP)) )
                 else
                     set_normalized_coefficient(constr[i], new_var[numY], 0)
                 end

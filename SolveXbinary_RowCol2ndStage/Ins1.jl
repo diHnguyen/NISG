@@ -5,5 +5,5 @@ global b_x = 5
 global origin = 1
 global destination = 6
 global P = [[1,8],[2,9],[3],[4,6],[5,7]]
-global d_y = [6, 8, 4, 6, 10, 6, 1, 8, 10]
-global b_y = 9
+global d_y = [6, 8, 4, 6, 10, 6, 5, 8, 10]
+global b_y = 10

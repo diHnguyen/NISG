@@ -5,7 +5,7 @@ using LightGraphs
 global arcs
 global d
 global q
-
+global b
 # global b = 5
 
 include("C:/Users/din/Documents/GitHub/IntCVaR/functionGbound.jl")

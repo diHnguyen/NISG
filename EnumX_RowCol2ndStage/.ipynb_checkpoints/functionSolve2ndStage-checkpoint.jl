@@ -1,5 +1,5 @@
 function solve2ndStage(x_fix)
-    global numArcs, numPaths, numY, R, P_Set, M_Set, b_y, d_y,q
+    global numArcs, numPaths, numY, R, P_set, M_set, b_y, d_y,q
     cRefNum = 200
     constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
     m = Model(() -> Gurobi.Optimizer(gurobi_env))
@@ -14,7 +14,7 @@ function solve2ndStage(x_fix)
        x_now[a] = 1 
     end
     for i = 1:numPaths
-        constr[i] = @constraint(m, u >= sum(sum(log(1-q[a]) for a in intersect(P_set[i],M_set[m]))*y[m] for m = 1:numY) - R*(sum(x_now[a] for a in P_set[i])) )
+        constr[i] = @constraint(m, u >= sum(1+sum(log(1-q[a]) for a in intersect(P_set[i],M_set[m]))*y[m] for m = 1:numY) - R*(sum(x_now[a] for a in P_set[i])) )
     end
     
     iter = 0
@@ -25,38 +25,38 @@ function solve2ndStage(x_fix)
         newP = false
         newM = false
         iter = iter + 1
-        println("\nIter ", iter)
-        println("M_set = ", M_set)
-        println("P_set = ", P_set)
+#         println("\nIter ", iter)
+#         println("M_set = ", M_set)
+#         println("P_set = ", P_set)
 #         println(m)
         set_optimizer(m, ()-> Gurobi.Optimizer(gurobi_env))
         optimize!(m)
 
         current_Obj = JuMP.objective_value.(m)
         y_now = JuMP.value.(y)
-        println("Obj = ", current_Obj)#, "; y_now = ", y_now)
-        println("y = ", findall(y_now.>0))
+#         println("Obj = ", current_Obj)#, "; y_now = ", y_now)
+#         println("y = ", findall(y_now.>0))
         lambda = zeros(numPaths)
         for i = 1:numPaths
             lambda[i] = JuMP.dual(constr[i])
         end
         pi_ = JuMP.dual(con0)
-        println("pi = ", pi_)
+#         println("pi = ", pi_)
         path, gx = shortestPath_BellmanFord(x_now, y_now, arcs, q, numArcs, M_set, numY)
         
         arcsinPath = findall(path.>0)
-        println("P = ", arcsinPath, " gx = ", gx)
-        if gx > current_Obj && (arcsinPath in P_set) == false 
+#         println("P = ", arcsinPath, " gx = ", gx)
+        if gx > current_Obj-1 && (arcsinPath in P_set) == false 
             numPaths = numPaths + 1
             push!(P_set, arcsinPath)
 #             println("Add path ", arcsinPath, " gx = ", gx, " u_hat = ", current_Obj)
             newP = true
             
-            constr[numPaths] = @constraint(m, u >= sum(sum(log(1-q[a]) for a in intersect(P_set[numPaths], M_set[m]))*y[m] for m = 1:numY) - R*(sum(x_now[a] for a in P_set[numPaths])) )
+            constr[numPaths] = @constraint(m, u >= sum((1+sum(log(1-q[a]) for a in intersect(P_set[numPaths], M_set[m])))*y[m] for m = 1:numY) - R*(sum(x_now[a] for a in P_set[numPaths])) )
         else
 #             println("lambda = ", lambda)
             M, colGen_Obj = genMonitoring(lambda, pi_, P_set, M_set, numY,numPaths)
-            println("M = ", M, "; ", colGen_Obj)
+#             println("M = ", M, "; ", colGen_Obj)
             #Setting names and bounds on anonymous variables must follow the right naming convention
             #https://jump.dev/JuMP.jl/stable/manual/variables/#Anonymous-JuMP-variables
             if isempty(M) == false #&& (M in M_set) == false
@@ -71,7 +71,7 @@ function solve2ndStage(x_fix)
 #                     println("P = ", path, "; M = ", M_set[numY])
                     McapP = intersect(P_set[i], M_set[numY])
                     if isempty(McapP) == false
-                        set_normalized_coefficient(constr[i], new_var[numY], -sum(log(1-q[a]) for a in McapP) )
+                        set_normalized_coefficient(constr[i], new_var[numY], -(1+sum(log(1-q[a]) for a in McapP)) )
                     else
                         set_normalized_coefficient(constr[i], new_var[numY], 0)
                     end

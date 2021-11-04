@@ -1,5 +1,5 @@
 function solve2ndStage(x_fix)
-    global numArcs, numPaths, numY, R, P_Set, M_Set, b_y, d_y,q
+    global numArcs, numPaths, numY, R, P_set, M_set, b_y, d_y,q
     cRefNum = 200
     constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
     m = Model(() -> Gurobi.Optimizer(gurobi_env))
