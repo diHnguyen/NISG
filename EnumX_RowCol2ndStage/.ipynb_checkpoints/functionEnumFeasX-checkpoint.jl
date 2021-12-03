@@ -1,4 +1,4 @@
-using Combinatorics
+# using Combinatorics
 function EnumX(arcs,b,numArcs,d) 
     X = findall(d.<=b)
     Len = length(X)

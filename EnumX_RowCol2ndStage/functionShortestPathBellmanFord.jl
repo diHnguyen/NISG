@@ -1,29 +1,7 @@
-function shortestPath_BellmanFord(x_now, y_now, edge, q, numArcs, M_set, numY)
-    
-    #println(f,"Current CELL's LB = ", c_L)
-    #println(f,"Current CELL's UB = ", c_U)
-#     println("Current interdiction x = ", x_now)
-#     global q, numArcs, R,M_set
-    
-#     c_g = zeros(numArcs)
-    c_g = ones(numArcs) #Because of new definition of H with the +1
-#     println
-    #Get arc cost
-    for a = 1:numArcs
-        if x_now[a] == 1
-            c_g[a] = 10^6
-        else
-            for m = 1:numY
-                if a in M_set[m]
-                    c_g[a] = c_g[a] - log(1-q[a])*y_now[m]
-                end
-            end
-        end
-    end
-    
-#     println("c_g = ", c_g)
-#     c_g = c_g + (p_y+1)*y[m]
-    
+function shortestPath_BellmanFord(c_g, edge, numArcs, origin, destination)
+#     println("arcs ", arcs)
+#     println("oringin ", origin, " destination ", destination)
+#     println("c_g ", c_g)
     start_node = edge[:,1]
     end_node = edge[:,2]
 
@@ -69,7 +47,7 @@ function shortestPath_BellmanFord(x_now, y_now, edge, q, numArcs, M_set, numY)
     label = state.dists
     pred = state.parents
     b_arc = ""
-    
+#     println("pred = ", pred)
     for i = 1: length(state.parents)
         if state.parents[i] != 0 
             b_arc = string(b_arc, "(", state.parents[i], ",", i, ")")
@@ -79,6 +57,7 @@ function shortestPath_BellmanFord(x_now, y_now, edge, q, numArcs, M_set, numY)
     # Retrieving the shortest path
     path = enumerate_paths(state, destination)
     
+#     println("path = ", path)
     #parents = LightGraphs.DijkstraState(state, destination)
 
     # Retrieving the 'x' variable in a 0-1 vector
@@ -104,5 +83,6 @@ function shortestPath_BellmanFord(x_now, y_now, edge, q, numArcs, M_set, numY)
     #println("Minimum Spanning Tree =", pred)
     #println("Node label =" ,label)
 #     println("path ", findall(y.>0)," cost ", gx)
+#     println("y = ", y)
     return y, gx #, SP, T, pred, label, path
 end
