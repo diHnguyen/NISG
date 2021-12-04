@@ -75,7 +75,7 @@ while theta_now + tol < inner_Obj  #newP == true || newM == true
     iter += 1
     println("\nIteration number = ", iter)
 #     println(MP)
-    optimize!(MP)
+#     optimize!(MP)
     theta_now = JuMP.value.(theta)
     x_now=JuMP.value.(x)
 #     x_now = callback_value.(Ref(cb_data), x)
@@ -107,10 +107,16 @@ while theta_now + tol < inner_Obj  #newP == true || newM == true
     if theta_now + tol < inner_Obj 
         println("Adding constraint")
         c = @constraint(MP, theta - sum(lambda[i]*(-R)*sum(x[a] for a in P_set[i]) for i=1:numPaths) >= pi_)
-        #MOI.set(MP, Gurobi.ConstraintAttribute("Lazy"), c, 2)
+        MOI.set(MP, Gurobi.ConstraintAttribute("Lazy"), c, 2)
     end
 
 #     if theta_now + tol >= inner_Obj
 #        break 
 #     end
 end
+println(model)
+optimize!(model)
+
+#     println(model)
+println("x = ", JuMP.value.(x))
+println("theta = ", JuMP.value.(theta))

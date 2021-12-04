@@ -6,6 +6,7 @@ function solveLP_findM(x_now)
     constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
     lambda = []
     pi_ = 0
+    y_now = []
     
     
     m = Model(() -> Gurobi.Optimizer())
@@ -123,5 +124,5 @@ function solveLP_findM(x_now)
 #     println("\tpi = ", pi_)
     
     
-    return P_set, M_set, lambda, pi_, current_Obj
+    return P_set, M_set, lambda, pi_, current_Obj, y_now
 end
