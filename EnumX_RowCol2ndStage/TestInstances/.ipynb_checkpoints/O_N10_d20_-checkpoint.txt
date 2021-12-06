@@ -1,0 +1,1 @@
+N10_d20_; Ins 1; Time 18.889999866485596; theta -0.3565473236494672; x_sol [5, 17, 18, 21]; M_select Array{Int64,1}[[19]]; y_sol [1.0]; Iter 340; M_len 24; P_len 17; NodeCount 1.0

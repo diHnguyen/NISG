@@ -1,0 +1,53 @@
+
+Gurobi 9.1.2 (win64) logging started Sun Dec  5 18:19:57 2021
+
+Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (win64)
+Thread count: 8 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 1 rows, 76 columns and 75 nonzeros
+Model fingerprint: 0x111ad688
+Variable types: 1 continuous, 75 integer (75 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [3e+01, 3e+01]
+  RHS range        [1e+01, 1e+01]
+Presolve time: 0.00s
+Presolved: 1 rows, 76 columns, 75 nonzeros
+Variable types: 1 continuous, 75 integer (75 binary)
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -2.8770567e+01   2.313124e-01   0.000000e+00     15s
+       4   -2.8770567e+01   0.000000e+00   0.000000e+00     15s
+
+Root relaxation: objective -2.877057e+01, 4 iterations, 0.00 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  -28.77057    0    2          -  -28.77057      -     -   14s
+H    0     0                       0.8116484  -28.77057  3645%     -   15s
+H    0     0                       0.6707244  -28.77057  4389%     -   15s
+     0     0  -20.15033    0    4    0.67072  -20.15033  3104%     -   15s
+     0     0  -15.10720    0    5    0.67072  -15.10720  2352%     -   17s
+H    0     0                       0.6611874  -15.10720  2385%     -   18s
+     0     0  -13.76354    0    7    0.66119  -13.76354  2182%     -   18s
+     0     0  -13.76354    0    7    0.66119  -13.76354  2182%     -   20s
+     0     0  -13.63615    0    8    0.66119  -13.63615  2162%     -   20s
+     0     2  -13.63432    0    8    0.66119  -13.63432  2162%     -   21s
+   210     3 infeasible   15         0.66119   -2.36955   458%   3.2   25s
+
+Cutting planes:
+  MIR: 4
+  Lazy constraints: 74
+
+Explored 264 nodes (809 simplex iterations) in 26.44 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 3: 0.661187 0.670724 0.811648 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 6.611874338312e-01, best bound 6.611874338312e-01, gap 0.0000%
+
+User-callback calls 728, time in user-callback 30.10 sec

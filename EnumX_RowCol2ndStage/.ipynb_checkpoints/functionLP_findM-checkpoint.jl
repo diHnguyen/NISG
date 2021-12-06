@@ -2,7 +2,7 @@ function solveLP_findM(x_now)
     global numArcs, arcs, d_x, q, b_x, origin, destination, R, d_y, b_y
     global newP, newM, P_set, M_set, numPaths,numY
     #When P_set gets large enough, add ample space for constraint
-    cRefNum = max(200,2*length(P_set))
+    cRefNum = max(400,2*length(P_set))
     constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
     lambda = []
     pi_ = 0
@@ -12,7 +12,7 @@ function solveLP_findM(x_now)
     m = Model(() -> Gurobi.Optimizer())
     set_optimizer_attribute(m, "OutputFlag", 0)
     @variable(m, y[1:numY] >= 0)
-    @variable(m, u)
+    @variable(m, u >= 1-R)
     @objective(m, Min, u)
     
     con0 = @constraint(m, sum(y[m] for m = 1:numY) == 1)
@@ -23,6 +23,7 @@ function solveLP_findM(x_now)
                 (1+sum(log10(1-q[a]) for a in intersect(P_set[i],M_set[m])))*y[m] for m = 1:numY) - R*(sum(x_now[a] for a in P_set[i])) )
     end
 #     println(m)
+   
     M = [-1]
     #Initialize newM and newP
     newM = true
@@ -47,12 +48,11 @@ function solveLP_findM(x_now)
         end
         
         pi_ = JuMP.dual(con0)
+        it = it + 1
+#         println("\t",it, ". Obj_LP = ", current_Obj, "\t", y_now)
 #         println("\tlambda = ", lambda)
 #         println("\tpi = ", pi_)
-#         println(m)
-        it = it + 1
-#         println(m)
-#         println("\t",it, ". Obj_LP = ", current_Obj, "\t", y_now)
+#         println("\tP_set = ", P_set)
         c_g = getCost_SP(x_now, y_now, arcs, q, numArcs, M_set, numY, R)
         path, gx = shortestPath_BellmanFord(c_g, arcs, numArcs, origin, destination)
 
