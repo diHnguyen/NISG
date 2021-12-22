@@ -1,0 +1,51 @@
+
+Gurobi 9.1.2 (win64) logging started Tue Dec  7 13:37:44 2021
+
+Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (win64)
+Thread count: 8 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 1 rows, 27 columns and 26 nonzeros
+Model fingerprint: 0xbf54b620
+Variable types: 1 continuous, 26 integer (26 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e+01, 2e+01]
+  RHS range        [1e+01, 1e+01]
+Presolve time: 0.00s
+Presolved: 1 rows, 27 columns, 26 nonzeros
+Variable types: 1 continuous, 26 integer (26 binary)
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -2.1008998e+01   5.796530e-01   0.000000e+00     14s
+       5   -1.8355507e+01   0.000000e+00   0.000000e+00     14s
+
+Root relaxation: objective -1.835551e+01, 5 iterations, 0.00 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  -18.35551    0    1          -  -18.35551      -     -   14s
+H    0     0                       0.1583625  -18.35551      -     -   14s
+     0     0  -14.33297    0    4    0.15836  -14.33297  9151%     -   14s
+H    0     0                      -0.7321246  -14.33297  1858%     -   14s
+     0     0   -9.38234    0    4   -0.73212   -9.38234  1182%     -   14s
+     0     0     cutoff    0        -0.73212   -0.73212  0.00%     -   14s
+
+Cutting planes:
+  Cover: 1
+  MIR: 4
+  StrongCG: 1
+  Relax-and-lift: 4
+  Lazy constraints: 3
+
+Explored 1 nodes (23 simplex iterations) in 14.43 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 2: -0.732125 0.158362 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective -7.321245806811e-01, best bound -7.321245806811e-01, gap 0.0000%
+
+User-callback calls 92, time in user-callback 18.13 sec

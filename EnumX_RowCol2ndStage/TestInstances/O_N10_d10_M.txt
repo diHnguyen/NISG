@@ -1,0 +1,5 @@
+N10_d10_M; Ins 1; Time 18.360999822616577; theta -2.9261988053263757; x_sol [4]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 80; M_len 8; P_len 6; NodeCount 0.0
+N10_d10_M; Ins 2; Time 18.1560001373291; theta -3.5885870532594044; x_sol [1]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 26; M_len 4; P_len 2; NodeCount 0.0
+N10_d10_M; Ins 3; Time 18.17199993133545; theta -3.7698722067702484; x_sol [1, 15]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 84; M_len 3; P_len 2; NodeCount 0.0
+N10_d10_M; Ins 4; Time 17.437999963760376; theta -3.496178421025566; x_sol [1]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 26; M_len 1; P_len 1; NodeCount 0.0
+N10_d10_M; Ins 5; Time 18.562999963760376; theta -3.0505783514595075; x_sol [1, 2]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 58; M_len 3; P_len 3; NodeCount 0.0

@@ -1,0 +1,25 @@
+
+Gurobi 9.1.2 (win64) logging started Tue Dec  7 09:48:53 2021
+
+Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (win64)
+Thread count: 8 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 1 rows, 69 columns and 68 nonzeros
+Model fingerprint: 0xd172bd46
+Variable types: 1 continuous, 68 integer (68 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [6e+01, 6e+01]
+  RHS range        [1e+01, 1e+01]
+Found heuristic solution: objective -63.2878905
+
+Explored 0 nodes (0 simplex iterations) in 14.38 seconds
+Thread count was 1 (of 8 available processors)
+
+Solution count 1: -63.2879 
+No other solutions better than -63.2879
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective -6.328789054362e+01, best bound -6.328789054362e+01, gap 0.0000%
+
+User-callback calls 25, time in user-callback 18.13 sec

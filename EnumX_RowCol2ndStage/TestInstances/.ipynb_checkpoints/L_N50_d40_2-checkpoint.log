@@ -1,0 +1,55 @@
+
+Gurobi 9.1.2 (win64) logging started Tue Dec  7 02:03:53 2021
+
+Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (win64)
+Thread count: 8 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 1 rows, 878 columns and 877 nonzeros
+Model fingerprint: 0xbf740d30
+Variable types: 1 continuous, 877 integer (877 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [4e+02, 4e+02]
+  RHS range        [1e+01, 1e+01]
+
+Gurobi 9.1.2 (win64) logging started Tue Dec  7 02:04:46 2021
+
+Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (win64)
+Thread count: 8 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 1 rows, 878 columns and 877 nonzeros
+Model fingerprint: 0xbf740d30
+Variable types: 1 continuous, 877 integer (877 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [4e+02, 4e+02]
+  RHS range        [1e+01, 1e+01]
+
+Gurobi 9.1.2 (win64) logging started Tue Dec  7 02:09:33 2021
+
+Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (win64)
+Thread count: 8 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 1 rows, 878 columns and 877 nonzeros
+Model fingerprint: 0xbf740d30
+Variable types: 1 continuous, 877 integer (877 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [4e+02, 4e+02]
+  RHS range        [1e+01, 1e+01]
+Presolve time: 0.00s
+Presolved: 1 rows, 878 columns, 877 nonzeros
+Variable types: 1 continuous, 877 integer (877 binary)
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -3.8124678e+02   1.027580e+00   0.000000e+00    214s
+       4   -2.7811304e+02   0.000000e+00   0.000000e+00    214s
+
+Root relaxation: objective -2.781130e+02, 4 iterations, 0.00 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 -175.69619    0    2          - -175.69619      -     -  321s

@@ -1,16 +1,18 @@
 function solveLP_findM(x_now)
     global numArcs, arcs, d_x, q, b_x, origin, destination, R, d_y, b_y
     global newP, newM, P_set, M_set, numPaths,numY
+#     global gurobi_env
     #When P_set gets large enough, add ample space for constraint
-    cRefNum = max(400,2*length(P_set))
+    cRefNum = max(700,3*length(P_set))
     constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
     lambda = []
     pi_ = 0
     y_now = []
     
-    
-    m = Model(() -> Gurobi.Optimizer())
+#     m = direct_model(Gurobi.Optimizer(gurobi_env))
+    m = Model(() -> Gurobi.Optimizer(gurobi_env))
     set_optimizer_attribute(m, "OutputFlag", 0)
+#     set_optimizer_attribute(m, "LogToConsole", 0)
     @variable(m, y[1:numY] >= 0)
     @variable(m, u >= 1-R)
     @objective(m, Min, u)

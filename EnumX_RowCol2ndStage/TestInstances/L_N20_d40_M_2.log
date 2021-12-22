@@ -1,0 +1,53 @@
+
+Gurobi 9.1.2 (win64) logging started Tue Dec  7 09:00:14 2021
+
+Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (win64)
+Thread count: 8 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 1 rows, 156 columns and 155 nonzeros
+Model fingerprint: 0x537c0579
+Variable types: 1 continuous, 155 integer (155 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [5e+01, 5e+01]
+  RHS range        [1e+01, 1e+01]
+Presolve time: 0.00s
+Presolved: 1 rows, 156 columns, 155 nonzeros
+Variable types: 1 continuous, 155 integer (155 binary)
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -4.5649550e+01   3.128722e-01   0.000000e+00     16s
+       7   -4.2571739e+01   0.000000e+00   0.000000e+00     16s
+
+Root relaxation: objective -4.257174e+01, 7 iterations, 0.00 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  -42.57174    0    1          -  -42.57174      -     -   15s
+H    0     0                       0.8895826  -42.57174  4886%     -   16s
+     0     0  -15.39128    0    4    0.88958  -15.39128  1830%     -   17s
+H    0     0                       0.8589019  -15.39128  1892%     -   19s
+     0     0  -13.01233    0    9    0.85890  -13.01233  1615%     -   19s
+     0     0  -13.00639    0   10    0.85890  -13.00639  1614%     -   19s
+     0     0  -12.72450    0    9    0.85890  -12.72450  1581%     -   19s
+     0     0  -12.72450    0    9    0.85890  -12.72450  1581%     -   19s
+     0     2  -12.72082    0    9    0.85890  -12.72082  1581%     -   20s
+   874     0     cutoff   15         0.85890   -0.75482   188%   3.8   29s
+
+Cutting planes:
+  MIR: 1
+  StrongCG: 1
+  Lazy constraints: 98
+
+Explored 898 nodes (3373 simplex iterations) in 29.57 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 2: 0.858902 0.889583 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 8.589019237149e-01, best bound 8.589019237149e-01, gap 0.0000%
+
+User-callback calls 2022, time in user-callback 33.07 sec

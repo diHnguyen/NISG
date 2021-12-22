@@ -1,15 +1,19 @@
 using JuMP, Gurobi, Test, Combinatorics, LightGraphs, TimerOutputs
 
 # function solveMP()
-    ins = ARGS[1] #:10
-    dataSet = "N10_d40_"
-    global prob = "" #"L"
+const gurobi_env = Gurobi.Env()
+# setparams!(gurobi_env, OutputFlag = 0)
+
+ins = ARGS[1] #:10
+dataSet = "N50_d40_"
+println("Running...")
+global prob = "L" #"L"
 #     include("./TestInstances/"*fileName*".jl")
-    global q
-    include("./TestInstances/"*dataSet*string(ins)*".jl")
-    global numArcs = length(arcs[:,1])
-    global lb = 1
-    global ub = 999
+global q
+include("./TestInstances/"*dataSet*string(ins)*".jl")
+global numArcs = length(arcs[:,1])
+global lb = 1
+global ub = 999
 # println("1")
 function setQ(prob)
     global lb, ub, numArcs, q
@@ -84,9 +88,10 @@ model = direct_model(Gurobi.Optimizer())
 #     set_optimizer_attribute(model, "Heuristics", 0)
 #     set_optimizer_attribute(model, "MIPGap", 0)
 set_optimizer_attribute(model, "LazyConstraints", 1)
+# set_optimizer_attribute(model, "OutputFlag", 0)
 global loc = "./Documents/GitHub/UncertainTarget/EnumX_RowCol2ndStage/TestInstances/"
 # println("Here")
-set_optimizer_attribute(model, "LogFile", loc*"L_"*dataSet*string(ins)*prob*".log")
+set_optimizer_attribute(model, "LogFile", loc*"L_"*dataSet*prob*"_"*string(ins)*".log")
 # Presolve = 0,
 #         PreCrush = 1,
 #         Heuristics = 0,
@@ -132,27 +137,27 @@ function my_callback_function(cb_data, cb_where::Cint)
 #             return  # Solution is something other than optimal.
 #         end
 #         if resultP == GRB_OPTIMAL
-            println("\niter = ", iter)
+#             println("\niter = ", iter)
             x_val = callback_value.(Ref(cb_data), x)
             theta_val = callback_value(cb_data, theta)
-            println("x_val = ", findall(x_val.>0))#, "\t theta_val", theta_val)
+#             println("x_val = ", findall(x_val.>0))#, "\t theta_val", theta_val)
             P_set, M_set, lambda, pi_, inner_Obj, y_sol = solveLP_findM(x_val)
 #             println("M = ", length(M_set), "\t P = ", length(P_set)) 
 #             println("P = ", P_set)
-            println("theta_val = ", theta_val, "\tinner_Obj = ", inner_Obj)
+#             println("theta_val = ", theta_val, "\tinner_Obj = ", inner_Obj)
         
 #             println("lambda = ", lambda, "\t pi_ = ", pi_)
             numPaths = length(P_set)
             numY = length(M_set)
 
             TOL = 10^(-3)
-            println("(inner_Obj - theta_val) = ", (inner_Obj - theta_val))
+#             println("(inner_Obj - theta_val) = ", (inner_Obj - theta_val))
             
 #             println("TOL = ", TOL)
             if (inner_Obj - theta_val) > TOL  
                 k+=1 
                 con_ = @build_constraint(theta >= sum(lambda[i]*(-R)*sum(x[a] for a in P_set[i]) for i=1:numPaths) + pi_)
-                println("Added con")
+#                 println("Added con")
 #                 println("Type = ", typeof(con_))
 #             cut_vio = (sum(lambda[i]*(-R)*sum(x_val[a] for a in P_set[i]) for i=1:numPaths) + pi_) - theta_val
 #                 println("Add con : cut violation = ", cut_vio)
@@ -179,7 +184,7 @@ function my_callback_function(cb_data, cb_where::Cint)
 #         end
     return
 end
-    # You _must_ set this parameter if using lazy constraints.
+#     You _must_ set this parameter if using lazy constraints.
     MOI.set(model, MOI.RawParameter("LazyConstraints"), 1)
     MOI.set(model, Gurobi.CallbackFunction(), my_callback_function)
 #     println(model)
@@ -189,6 +194,7 @@ end
     totalTime = time() - start
     x_sol = JuMP.value.(x)
     theta_sol = JuMP.value.(theta)
+    println("dataSet ", dataSet*prob)
     println("x = ", x_sol)
     println("x_i = ", findall(x_sol.>0))
     println("theta = ", theta_sol)
@@ -198,9 +204,13 @@ end
     println("M_pos = ", M_set[y_pos])
     nodeCount = MOI.get(model, MOI.NodeCount())
     println("Node count = ", nodeCount)
-    timesFile = open(loc*"O_"*dataSet*prob*".txt", "a")
-    println(timesFile, dataSet, "; Ins ", ins, "; Time ", totalTime, "; theta ", theta_sol,"; x_sol ", findall(x_sol.>0),"; M_select ", M_set[y_pos], "; y_sol ", y_sol[y_pos], "; Iter ", iter, "; M_len ", length(M_set), "; P_len ", length(P_set), "; NodeCount ", nodeCount)
+
+timesFile = open(loc*"O_"*dataSet*prob*".txt", "a")
+println(timesFile, dataSet*prob, "; Ins ", ins, "; Time ", totalTime, "; theta ", theta_sol,"; x_sol ", findall(x_sol.>0),"; M_select ", M_set[y_pos], "; y_sol ", y_sol[y_pos], "; Iter ", iter, "; M_len ", length(M_set), "; P_len ", length(P_set), "; NodeCount ", nodeCount)
+close(timesFile)
+
 if prob != ""
-    println(timesFile, dataSet, "; Ins ", ins, "; q ", q)
+    qFile = open(loc*"q_"*dataSet*prob*".txt", "a")
+    println(qFile, dataSet*prob, "; Ins ", ins, "; q ", q)
+    close(qFile)
 end
-    close(timesFile)
