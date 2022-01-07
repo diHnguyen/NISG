@@ -1,0 +1,10 @@
+N10_d10_; Ins 1; theta 0.0; x_sol [4, 10]; M_select Array{Int64,1}[[4, 2, 13]]; y_sol [1.0]; Iter 4; M_len 3; P_len 6
+P_set = Array{Int64,1}[[2, 4, 5, 12, 13], [2, 14, 7, 10, 4, 12], [2, 15, 10, 4, 11, 9], [1, 6, 7, 10, 3, 8], [2, 15, 10, 4, 12], [2, 14, 7, 10, 4, 12]]
+N10_d10_; Ins 2; theta 0.0; x_sol [10, 11]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 1; M_len 1; P_len 1
+P_set = Array{Int64,1}[[1, 7, 9, 10, 11, 14]]
+N10_d10_; Ins 3; theta 0.0; x_sol [1]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 1; M_len 1; P_len 1
+P_set = Array{Int64,1}[[1, 5, 11]]
+N10_d10_; Ins 4; theta 0.0; x_sol [1]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 2; M_len 1; P_len 6
+P_set = Array{Int64,1}[[1, 2, 7, 9, 13], [1, 11], [1, 11], [1, 10, 8, 4], [1, 10, 8, 4], [1, 11]]
+N10_d10_; Ins 5; theta 0.0; x_sol [1, 2]; M_select Array{Int64,1}[[13, 3, 10]]; y_sol [1.0]; Iter 3; M_len 2; P_len 5
+P_set = Array{Int64,1}[[2, 3, 7, 9, 10, 13], [1, 6, 12, 13, 3], [1, 6, 11, 9, 13, 3], [1, 6, 12, 13, 3], [1, 6, 11, 9, 13, 3]]

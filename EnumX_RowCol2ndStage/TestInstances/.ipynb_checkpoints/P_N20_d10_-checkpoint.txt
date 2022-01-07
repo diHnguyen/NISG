@@ -1,0 +1,2 @@
+N20_d10_; Ins 1; Time 0.5319998264312744; theta -17.998672270623093; x_sol [36, 43, 44]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 95; M_len 22; P_len 17; NodeCount 1.0
+P_pos = Array{Int64,1}[]
