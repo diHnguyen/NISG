@@ -1,6 +1,7 @@
 function F_SG(x_now)
     global numArcs, arcs, d_x, q, b_x, origin, destination, R, d_y, b_y, F
     global newP, newM, P_set, M_set, numPaths,numY
+    global t_exactRow, t_exactCol
 #     global gurobi_env
     #When P_set gets large enough, add ample space for constraint
 #     println("A")
@@ -130,7 +131,13 @@ function F_SG(x_now)
 #         println("preExactPath")
         if  continueApprox == false
             println("\tExact...")
-            f_s, arcsinPath, f_val = IP_RowGen(x_now, y_now)
+#             t1 = start()
+#             t2 = start()-t1
+#             println("\t t = ", t2)
+            @timeit to "IP_RowGen" f_s, arcsinPath, f_val = IP_RowGen(x_now, y_now)
+#             println("Here")
+            
+#             t_exactRow = t_exactRow + start()-t1
             
             if current_Obj + TOL < f_s
     #             println("\tRow Gen: ", f_s, " \t", arcsinPath)
@@ -157,7 +164,9 @@ function F_SG(x_now)
             if newP == false
 #             println("\t\tnewP = ", newP, " find M")
                 M = []
-                f_s, M, f_val = IP_ColGen(lambda)
+#                 t1 = start()
+                @timeit to "IP_ColGen" f_s, M, f_val = IP_ColGen(lambda)
+#                 t_exactCol = t_exactCol + start() -t1
     #             tempq = ones(numPaths)
     #             for i = 1:numPaths
     #                 P = P_set[i]
