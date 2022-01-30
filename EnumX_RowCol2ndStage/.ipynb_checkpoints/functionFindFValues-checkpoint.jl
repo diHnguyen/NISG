@@ -14,7 +14,7 @@ function findf_MP(arcsinPath, M)
     end
     return f_MP
 end
-function updateQ(Q, P_set, M_set, numY, numPaths)
+function updateF(Q, P_set, M_set, numY, numPaths)
     global q,p
     Q_length = length(Q)
     

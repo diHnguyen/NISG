@@ -1,6 +1,6 @@
 function IP_RowGen(x_sol, y_sol)
     global P_set, M_set, numPaths, numY
-    global numArcs, arcs, d_x, q, b_x, origin, destination, d_y, b_y, Q
+    global numArcs, arcs, d_x, q, b_x, origin, destination, d_y, b_y, F
     
     y_pos = findall(y_sol.>0)
     numY_pos = length(y_pos)
