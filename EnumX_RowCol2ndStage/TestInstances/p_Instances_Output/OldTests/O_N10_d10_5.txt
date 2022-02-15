@@ -1,0 +1,16 @@
+dataSet = N10_d10_
+ins = 5
+theta = 0.003535000000000003
+totalTime = 1.2820000648498535
+t_RowGen = 0.164153201
+n_RowGen = 6
+t_ColGen = 0.132701
+n_ColGen = 6
+x = [0.0, 0.0, 0.0, 0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, -0.0, 0.0, -0.0, -0.0, -0.0, 0.0, 0.0]
+x_i = Int64[]
+y = Any[]
+M_pos = Array{Int64,1}[]
+M_set = Array{Int64,1}[[5], [1, 14]]
+P_set = Array{Int64,1}[[1, 14]]
+Node count = 0.0
+MIPGAP_root = 0

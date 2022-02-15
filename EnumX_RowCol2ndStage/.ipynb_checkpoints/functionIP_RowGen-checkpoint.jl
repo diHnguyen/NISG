@@ -26,7 +26,7 @@ function IP_RowGen(x_sol, y_sol)
     for m = 1:numY_pos
         @constraint(mod1, f[destination,m] == 1)
     end
-    println("1")
+#     println("1")
     #Flow constraint:
     outArcs = findall(arcs[:, 1].==origin)
     @constraint(mod1, sum(v[a] for a in outArcs) == 1)
@@ -44,13 +44,13 @@ function IP_RowGen(x_sol, y_sol)
     #Obj
     @objective(mod1, Max, sum(f[origin, m]*y_sol[y_pos[m]] for m = 1:numY_pos))
     optimize!(mod1)
-    println("2")
+#     println("2")
     if termination_status(mod1) == MOI.OPTIMAL
         f_s = JuMP.objective_value.(mod1)
     #     println(f_s)
         arcsinPath =findall(JuMP.value.(v) .>=1-TOL)
 #         println("v = ", JuMP.value.(v))
-        println("preProcess arcsinPath = ", arcsinPath)
+#         println("preProcess arcsinPath = ", arcsinPath)
 #         println("preProcess arcsinPath = ", findall(JuMP.value.(v) .> 1 - TOL))
         f_val = JuMP.value.(f)
         #If exists a separate cycle - unique won't work
@@ -61,7 +61,7 @@ function IP_RowGen(x_sol, y_sol)
         c_g = ones(length(arcsinPath))
         myPath, gx = shortestPath_BellmanFord(c_g, arcs[arcsinPath,:], length(arcsinPath), origin, destination)
         arcsinPath = arcsinPath[findall(myPath.>=1-TOL)]
-        println("after ", arcsinPath)
+#         println("after ", arcsinPath)
 #         end
 #         if arcsinPath == [1, 5, 10, 12, 29]
 #             y_pos = findall(y_sol.>0)

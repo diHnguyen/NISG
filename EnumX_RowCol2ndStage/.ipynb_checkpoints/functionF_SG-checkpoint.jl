@@ -13,6 +13,7 @@ function F_SG(x_now)
     
 #     m = direct_model(Gurobi.Optimizer(gurobi_env))
     m = Model(() -> Gurobi.Optimizer(gurobi_env))
+    set_optimizer_attribute(m,"Threads", 1)
     set_optimizer_attribute(m, "OutputFlag", 0)
     @variable(m, y[1:numY] >= 0)
     @variable(m, u >= 0)
@@ -38,7 +39,7 @@ function F_SG(x_now)
     while newP == true || newM == true
         newP = false
         newM = false
-        optimize!(m)
+        @timeit to "F_SG" optimize!(m)
         
         current_Obj = JuMP.objective_value.(m)
         y_now=JuMP.value.(y)
@@ -46,8 +47,8 @@ function F_SG(x_now)
 #         println(m)
 #         println("\tcurrent_Obj = ",current_Obj)
         y_pos = findall(y_now.>0)
-#         println("\ty_pos = ", y_now[y_pos])
-#         println("\tM_pos = ", M_set[y_pos])
+#          println("\ty_pos = ", y_now[y_pos])
+#          println("\tM_pos = ", M_set[y_pos])
 #         println("\tP_set = ", P_set)
 #         println("\tnumPaths = ", numPaths, " vs ", length(P_set))
         
@@ -57,16 +58,16 @@ function F_SG(x_now)
         end
         pi_ = JuMP.dual(con0)
         it = it + 1
-        println("\t",it, ". Obj_LP = ", current_Obj)#, "\t", y_now)
+#         println("\t",it, ". Obj_LP = ", current_Obj)#, "\t", y_now)
 #         println("y_pos = ", y_now[y_pos])
-#         println("M_pos = ", M_set[y_pos])
+#         println("\tM_pos = ", M_set[y_pos])
 #         println("\tlambda = ", lambda)
 #         println("\tpi = ", pi_)
         
 #         if numPaths == 28
         lambda_pos = findall(lambda.>0)
-#             println("lambda_pos = ", lambda[lambda_pos])
-#             println("P_pos = ", P_set[lambda_pos])
+#              println("\tlambda_pos = ", lambda[lambda_pos])
+#              println("\tP_pos = ", P_set[lambda_pos])
         
 #             for i in lambda_pos
 #                 println("\tlambda ", lambda[i], "\t", P_set[i])
@@ -77,18 +78,22 @@ function F_SG(x_now)
 #         println("\tP_set = ", P_set)
 #         println("PreApprox")
         if continueApprox == true
-            println("\tApprox...")
+#              println("\tApprox...")
             c_g = getCost_SP(x_now, y_now)
+#             println("\tSolving for Row")
             path, gx = shortestPath_BellmanFord(c_g, arcs, numArcs, origin, destination)
+#             println("\tDone - Solving for Row")
             new_F_PM = 0
             arcsinPath = findall(path.>TOL)
             if sum(x_now[a] for a in arcsinPath) < TOL
+#                 println("\tPath is not interdicted")
                 for i in y_pos
                     M = M_set[i]
                     new_F_PM = new_F_PM + findf_MP(arcsinPath, M)*y_now[i]
                 end
-                println("\tPath ",arcsinPath, "\t", new_F_PM)
+                
                 if current_Obj + TOL < new_F_PM #sum(F[numPaths][m]*y_now[m] for m=1:numY)  
+#                     println("\tPath ",arcsinPath, "\t", new_F_PM)
                     newP = true
                     numPaths = numPaths + 1
                     push!(P_set, arcsinPath)
@@ -99,38 +104,62 @@ function F_SG(x_now)
             end
 #             println("doneApproxPath")
             if newP == false
-#             println("\t\tnewP = ", newP, " find M")
+#                 println("\tnewP = ", newP, " find M")
                 M = []
                 M, colGen_Obj = LP_ColGen(lambda)
                 if isempty(M) == false
+#                     println("\tM isn't empty")
                     new_F_PM = 0
                     for i in lambda_pos
                         P = P_set[i]
-                        new_F_PM = new_F_PM + findf_MP(arcsinPath, M)*lambda[i]
+#                         println("\tF_val =",findf_MP(P, M))
+                        new_F_PM = new_F_PM + findf_MP(P, M)*lambda[i]
+                        
                     end
-                    println("\tMon ",M, "\t", new_F_PM)
+#                     if M == [3, 4]
+#                         println("lambda_pos = ", lambda_pos)
+#                         println("lambd = ", lambda[lambda_pos])
+#                         println("P_pos = ", P_set[lambda_pos])
+#                         println("pi_ = ", pi_)
+#                     end
                     if new_F_PM - pi_< -TOL 
+#                         println("\tMon ",M, "\t", new_F_PM)
+#                         println("\tP_set length = ", length(P_set))
+#                         println("\tP_Set =", P_set)
                         newM = true
                         numY += 1
                         push!(M_set, M)
                         new_var = @variable(m, [numY], base_name = "y", lower_bound = 0)
                         push!(y, new_var[numY])
+#                         println("Pre-update F")
                         F = updateF(F, P_set, M_set, numY, numPaths)
+#                         println("Post-update F")
+#                         println("numPaths = ", numPaths)
+#                         println("F = ", F)
+#                         println("numY = ", numY)
+#                         println("M_set = ", M_set)
+                       
                         for i = 1:numPaths
+#                             println("\tpath ", i)
+#                             println(constr[i])
                             set_normalized_coefficient(constr[i], new_var[numY], -F[i][numY]) 
                             set_normalized_coefficient(con0, new_var[numY], 1)
                         end
+#                         println("Post update coefs")
                     end
+#                     println("\tDone setting new coef for M")
                 end
+#                 println("\tDone solving for M")
             end
 #             println("doneApproxMon")
             if newP == false && newM == false
                 continueApprox = false
             end
+#             println("continueApprox = ", continueApprox)
         end
 #         println("preExactPath")
         if  continueApprox == false
-            println("\tExact...")
+#              println("\tExact...")
 #             t1 = start()
 #             t2 = start()-t1
 #             println("\t t = ", t2)
@@ -240,7 +269,9 @@ function F_SG(x_now)
 #     println("P_set ", P_set)
 #     println("\tlambda = ", lambda)
 #     println("\tpi = ", pi_)
-    
+#      println("\tt_F_SG = ", TimerOutputs.time(to["F_SG"])/10^9)
+#      println("\tt_RowGen = ", TimerOutputs.time(to["IP_RowGen"])/10^9)
+#      println("\tt_ColGen = ", TimerOutputs.time(to["IP_ColGen"])/10^9)
     
     return lambda, pi_, current_Obj, y_now
 end
