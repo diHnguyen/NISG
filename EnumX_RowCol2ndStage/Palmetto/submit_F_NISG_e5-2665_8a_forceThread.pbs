@@ -1,0 +1,25 @@
+#/bin/bash
+#PBS -N network_intr
+#PBS -l select=1:ncpus=16:mem=62gb:chip_type=e5-2665:phase=8a,walltime=01:02:00
+#PBS -m abe
+#PBS -j oe
+#PBS -J 1-2
+
+##numArr=(100 12 13 17 18 25 26 27 35 36 38 4 51 53 57 59 62 63 65 74 7 83 93 95) #N30d10, 24
+##numArr=(127 132 142 148 151 167 194 21 23 48 79 80 87) #N40d10, 13
+##numArr=(282 320 561 727 741 909 1005 1006 1083 1211 1292) #N50d10, 11
+##numArr=(16 48 130 133 269 849 1013 1019 1101 1115 1265) #N60d10, 11
+
+numArr=(51 0)
+i=$((${PBS_ARRAY_INDEX}-1))
+
+echo "Parameter is " ${numArr[$i]}
+
+module add julia/1.1.1-gcc
+module add gurobi/9.0.0
+export JULIA_NUM_THREADS=16
+
+cd $PBS_O_WORKDIR
+
+
+julia F_NISG.jl ${numArr[$i]} 8a 30 10 ##Ins, phase, |N|, density ##${PBS_ARRAY_INDEX}
