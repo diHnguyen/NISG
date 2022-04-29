@@ -1,4 +1,0 @@
-N50_d10_; Ins 2; theta 0.514
-N50_d10_; Ins 3; theta 0.0
-N50_d10_; Ins 4; theta 0.0
-N50_d10_; Ins 5; theta 1.0

@@ -1,5 +1,0 @@
-N20_d10_H; Ins 1; Time 18.467999935150146; theta -43.85350841003691; x_sol [36, 43, 44]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 69; M_len 6; P_len 6; NodeCount 0.0
-N20_d10_H; Ins 2; Time 19.5939998626709; theta -1.3977971065707029; x_sol [1, 2, 8, 32]; M_select Array{Int64,1}[[4, 32, 42, 51], [4, 5, 32, 43, 51], [4, 41, 51]]; y_sol [0.122866, 0.772324, 0.10481]; Iter 382; M_len 35; P_len 22; NodeCount 1.0
-N20_d10_H; Ins 3; Time 22.796000003814697; theta 0.02819975582130496; x_sol [5, 6, 8, 19, 24, 31]; M_select Array{Int64,1}[[19], [8, 18, 39], [1, 18, 42], [1, 6, 18], [6, 8, 18], [2, 18, 39], [4, 6, 8]]; y_sol [0.258126, 0.147467, 0.00511861, 0.210384, 0.209032, 0.168742, 0.00113146]; Iter 563; M_len 78; P_len 34; NodeCount 122.0
-N20_d10_H; Ins 4; Time 17.828999996185303; theta -39.771936838104985; x_sol [11]; M_select Array{Int64,1}[[11]]; y_sol [1.0]; Iter 68; M_len 2; P_len 1; NodeCount 0.0
-N20_d10_H; Ins 5; Time 18.552000045776367; theta -37.78401707743981; x_sol [17, 22]; M_select Array{Int64,1}[[1]]; y_sol [1.0]; Iter 69; M_len 15; P_len 5; NodeCount 0.0

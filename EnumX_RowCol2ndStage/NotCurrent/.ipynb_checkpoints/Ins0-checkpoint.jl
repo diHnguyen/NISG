@@ -1,9 +1,0 @@
-global arcs = [1 2; 2 3; 1 3]
-global d_x = [1, 2, 1]
-global q = [0.8, 0.01, 0.5]
-global b_x = 1
-global origin = 1
-global destination = 3
-global P = [[1,2],[3]]
-global d_y = [1, 2, 1]
-global b_y = 1
