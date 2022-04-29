@@ -2,6 +2,7 @@ function getCost_SP(x_now, y_now)#, edge, q, numArcs, M_set, numY, R)
     global iter, numArcs, arcs, R, numY, M_set
     
     c_g = zeros(numArcs) #This should start at 0 not 1, the additional 1 units from H-definition only gets added ONCE per PATH not per arc
+    
     interdicted_Arcs = findall(x_now.==1)
     for a = 1:numArcs
         if a in interdicted_Arcs
@@ -23,6 +24,7 @@ function getCost_SP(x_now, y_now)#, edge, q, numArcs, M_set, numY, R)
         end
     end
     c_g = c_g.*(-1)
+#     println("c_g = ", c_g)
 #     y_pos = findall(y_now.>0)
 #     for a in y_pos
 #         println(M_set[a], "\t", y_now[a])

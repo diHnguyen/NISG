@@ -13,7 +13,7 @@ function F_SG(x_now)
     
 #     m = direct_model(Gurobi.Optimizer(gurobi_env))
     m = Model(() -> Gurobi.Optimizer(gurobi_env))
-    set_optimizer_attribute(m,"Threads", 1)
+    # set_optimizer_attribute(m,"Threads", 1)
     set_optimizer_attribute(m, "OutputFlag", 0)
     @variable(m, y[1:numY] >= 0)
     @variable(m, u >= 0)
@@ -123,7 +123,7 @@ function F_SG(x_now)
 #                         println("pi_ = ", pi_)
 #                     end
                     if new_F_PM - pi_< -TOL 
-#                         println("\tMon ",M, "\t", new_F_PM)
+#                         println("\tMon ",M, "\t", new_F_PM - pi_)
 #                         println("\tP_set length = ", length(P_set))
 #                         println("\tP_Set =", P_set)
                         newM = true
@@ -179,6 +179,7 @@ function F_SG(x_now)
     #             end
     #         if current_Obj < gx+1 && (arcsinPath in P_set) == false 
                 newP = true
+                continueApprox == true
     #             println("newP = ", newP, " add P", arcsinPath)
                 numPaths = numPaths + 1
                 push!(P_set, arcsinPath)
@@ -215,12 +216,13 @@ function F_SG(x_now)
                 #https://jump.dev/JuMP.jl/stable/manual/variables/#Anonymous-JuMP-variables
 
                 if f_s - pi_< -TOL #0 #isempty(M) == false &&  #&& (M in M_set) == false
-                    #             println("M = ", M)
+#                                 println("\tM = ", M, "= f_s - pi_ = ", f_s - pi_)
     #                 println("\tTest f_s - pi_ = ", sum(lambda[i]*tempq[i] for i =1:numPaths) - pi_)
         #             M, colGen_Obj = genMonitoring(lambda, pi_, P_set,numPaths)
         #             println()
     #                 println("\tCol Gen ",f_s - pi_, "\tM = ", M) #, "\t costs ", sum(d_y[a] for a in M))
                     newM = true
+                    continueApprox == true
                     numY += 1
     #                 println("Add M")
     #                 println("M = ", M)

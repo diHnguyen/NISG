@@ -1,5 +1,5 @@
 println("\n===========================")
-println("Algorithm 1 (LP_IP): F_NISG_SVI")
+println("Algorithm 1 (SVI): F_NISG_SVI")
 println("===========================")
 using JuMP, Gurobi, Test, Combinatorics, LightGraphs, TimerOutputs, Dates
 
@@ -8,10 +8,14 @@ myRun = Dates.format(now(), "HH:MM:SS")
 const gurobi_env = Gurobi.Env()
 # const to = TimerOutput()
 ins = ARGS[1] #:10
-nodeSet = "N30"
-density = "d10"
+phase = ARGS[2] #:10
+_node = ARGS[3]
+_dens = ARGS[4]
+nodeSet = "N"*string(_node)
+density = "d"*string(_dens)
 dataSet = nodeSet*string("_")*density*string("_")#"N10_d10_"
 println(dataSet*string(ins)*"\tRunning..."*myRun)
+println("Phase ", phase)
 #     include("./TestInstances/"*fileName*".jl")
 # global q = []
 include("./TestInstances/p_Instances/"*nodeSet*string("/")*dataSet*string(ins)*".jl")
@@ -35,7 +39,7 @@ include("./functionIP_ColGen.jl")
 include("./functionLP_ColGen.jl")
 # println("1")
 include("./functionF_SG.jl")
-
+include("./functionTightenConstraint.jl")
 #Q has numPaths elements, each element is of length = numY
 global F = []
 # f_MP = findf_MP([1,3], [1,3])
@@ -54,12 +58,12 @@ global newP = true
 global newM = true
 global iter = 0
 # println("1")
-global R = sum(-log(1-p[a]) for a = 1:numArcs)
+global R = sum(-log(1-q[a]) for a = 1:numArcs)
 println(R)
 println(P_set)
 println(M_set)
 F = updateF(F, P_set, M_set, numY, numPaths)
-println(d_x[[2,5]])
+# println(d_x[[2,5]])
 # conRefNum = 20# max(200,2*length(P_set))
 # con = Array{JuMP.ConstraintRef}(undef, conRefNum)
 to = TimerOutput()
@@ -72,13 +76,13 @@ model = direct_model(Gurobi.Optimizer())
 #     set_optimizer_attribute(model, "PreQLinearize", 0)
 #     set_optimizer_attribute(model, "Heuristics", 0)
 #     set_optimizer_attribute(model, "MIPGap", 0)
-set_optimizer_attribute(model,"Threads", 1)
+# set_optimizer_attribute(model,"Threads", 1)
 set_optimizer_attribute(model, "LazyConstraints", 1)
 set_optimizer_attribute(model, "OutputFlag", 0)
 #cRefNumLazy = numPaths #length(P_set) #max(700,3*length(P_set))
-constrLazy = Array{JuMP.ScalarConstraint}(undef, 0)
-constrThetaLazy = Array{JuMP.ScalarConstraint}(undef, 0)
-global loc = "./Documents/GitHub/UncertainTarget/EnumX_RowCol2ndStage" #"./Documents/GitHub/UncertainTarget/EnumX_RowCol2ndStage/TestInstances/"
+global constrLazy = Array{JuMP.ScalarConstraint}(undef, 0) #SVIs constraints
+global constrThetaLazy = Array{JuMP.ScalarConstraint}(undef, 0) #Benders constraints
+# global loc = "./Documents/GitHub/UncertainTarget/EnumX_RowCol2ndStage" #"./Documents/GitHub/UncertainTarget/EnumX_RowCol2ndStage/TestInstances/"
 # println("LogFile", loc*dataSet*string(ins)*".log")
 # set_optimizer_attribute(model, "LogFile", loc*dataSet*string(ins)*".log")
 # println("1")
@@ -110,11 +114,11 @@ function my_callback_function(cb_data, cb_where::Cint)
     global numArcs, arcs, d_x, q, b_x, origin, destination, R, d_y, b_y, y_sol
     global newP, newM, P_set, M_set, numPaths,numY, iter, theta_now, inner_Obj
     global k, last_theta, t_exactRow, t_exactCol,lambda_pos,lambda, MIPGAP, nodeCount
-    global theta_inc, x_inc, y_inc, lambda_inc, xplored,constrLazy
+    global theta_inc, x_inc, y_inc, lambda_inc, xplored,constrLazy,constrThetaLazy, start
     # You can reference variables outside the function as normal
     push!(cb_calls, cb_where)
     iter += 1
-     println("\niter ", iter)
+    #  println("iter ", iter)
 #     println("cb_where = ", cb_where)
 #     println("GRB_CB_MIPSOL = ", GRB_CB_MIPSOL)
 #     println("GRB_CB_MIPNODE = ", GRB_CB_MIPNODE)
@@ -128,21 +132,24 @@ function my_callback_function(cb_data, cb_where::Cint)
         GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_NODCNT, resultN)
         nodeCount = resultN[]
 #         println("\n\tMIPNODE_NODCNT ", nodeCount)
+
         if nodeCount == 0
             resultO = Ref{Cdouble}()
             GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBST, resultO)
             obj = resultO[]
-#             println("\tMIPNODE_OBJBST ", obj)
+            # println("\tTime ", time()-start)
+            # println("\tMIPNODE_OBJBST ", obj)
             resultO = Ref{Cdouble}()
             GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBND, resultO)
             objBound = resultO[]
-#             println("\tMIPNODE_OBJBND ", objBound)
+            # println("\tMIPNODE_OBJBND ", objBound)
             MIPGAP = (obj - objBound)/obj*100
-#             println("\tMIPGAP = ", MIPGAP)
+            # println("\tMIPGAP = ", MIPGAP)
 #             if resultP[] != GRB_OPTIMAL
 #                 return  # Solution is something other than optimal.
 #             end
         end
+        
     end
     if cb_where == GRB_CB_MIPSOL
 #         resultP = Ref{Cint}()
@@ -156,13 +163,14 @@ function my_callback_function(cb_data, cb_where::Cint)
             resultO = Ref{Cdouble}()
             GRBcbget(cb_data, cb_where, GRB_CB_MIPSOL_OBJBST, resultO)
             obj = resultO[]
-#             println("\tMIPSOL_OBJBST ", obj)
+            # println("\tTime ", time()-start)
+            # println("\tMIPSOL_OBJBST ", obj)
             resultO = Ref{Cdouble}()
             GRBcbget(cb_data, cb_where, GRB_CB_MIPSOL_OBJBND, resultO)
             objBound = resultO[]
-#             println("\tMIPNODE_OBJBND ", objBound)
+            # println("\tMIPSOL_OBJBND ", objBound)
             MIPGAP = (obj - objBound)/obj*100
-#             println("\tMIPGAP = ", MIPGAP)
+            # println("\tMIPGAP = ", MIPGAP)
 #             if resultP[] != GRB_OPTIMAL
 #                 return  # Solution is something other than optimal.
 #             end
@@ -173,7 +181,7 @@ function my_callback_function(cb_data, cb_where::Cint)
         x_val = callback_value.(Ref(cb_data), x)
         theta_val = callback_value(cb_data, theta)
         int_x = findall(x_val.>0)
-        println("x_val = ", findall(x_val.>0), "\t theta_val", theta_val)
+        # println("x_val = ", findall(x_val.>0), "\t theta_val", theta_val)
 #          println("M = ", M_set)
 #          println("P = ", P_set)
         #Solve sub problem
@@ -194,7 +202,7 @@ function my_callback_function(cb_data, cb_where::Cint)
         
         
         if xFound == true
-            for c_index = 1:length(xplored)
+            for c_index = 1:length(constrThetaLazy)
                 con_ = constrThetaLazy[c_index]
 #                 println("\tconstraint ", con_)
                 MOI.submit(model, MOI.LazyConstraint(cb_data), con_)
@@ -207,7 +215,7 @@ function my_callback_function(cb_data, cb_where::Cint)
             lambda, pi_, inner_Obj, y_sol = F_SG(x_val)
     #         println("postSG")
     #         end
-    #         println("inner_Obj = ", inner_Obj)
+            # println("inner_Obj = ", inner_Obj)
             lambda_pos = findall(lambda.>0)
             numPaths = length(P_set)
             numY = length(M_set)
@@ -217,35 +225,43 @@ function my_callback_function(cb_data, cb_where::Cint)
     #     println("4")
     #         
     #         println(Q)
+            if inner_Obj < theta_inc
+#                 println(iter, "Updating Incumbent Sol : ", inner_Obj, " \t ", findall(x_val.>0))
+                theta_inc = inner_Obj
+                x_inc = x_val
+                y_inc = y_sol
+                lambda_inc = lambda
+            end
             TOL = 10^(-5)
             if (inner_Obj - theta_val) > TOL  
+                
                 k+=1 
-                con_ = @build_constraint(theta >= -sum(lambda[i]*sum(x[a] for a in P_set[i]) for i=1:numPaths) + pi_)
+                x_coefs, X_set = tightenConstraint(lambda, pi_,lambda_pos, P_set,numPaths, numArcs)
+                con_ = @build_constraint(theta >= -sum(x_coefs[a]*x[a] for a =1:numArcs)+ pi_)
+                #Old constraint - Before tightening#
+                #con_ = @build_constraint(theta >= -sum(lambda[i]*sum(x[a] for a in P_set[i]) for i=1:numPaths) + pi_)
+                ####################################
                 push!(constrThetaLazy, con_)
-                println(con_)
+#                 println(con_)
                 w_con = MOI.submit(model, MOI.LazyConstraint(cb_data), con_)
-                X_set = []
-    #             for i in lambda_pos
-                    X_set = reduce(vcat, P_set[lambda_pos])
-    #             end
-                unique!(X_set)
+                
+                #######Taken care of by functionTighteningConstraint #######
+#                 X_set = []
+#                 X_set = reduce(vcat, P_set[lambda_pos])
+#                 unique!(X_set)
+                ############################################################
+                
 #                 println("\tPaths pos ", P_set[lambda_pos])
                 c2 = @build_constraint(sum(x[a] for a in X_set) >= 1)
                 push!(constrLazy, c2)
 #                 println("\tconstraint ", c2)
                 MOI.submit(model, MOI.LazyConstraint(cb_data), c2)
-                if inner_Obj < theta_inc
-    #                 println(iter, "Updating Incumbent Sol : ", inner_Obj, " \t ", findall(x_val.>0))
-                    theta_inc = inner_Obj
-                    x_inc = x_val
-                    y_inc = y_sol
-                    lambda_inc = lambda
-                end
+                
     #                 println("Typeof = ", typeof(w_con))
     #             MOI.set(model, Gurobi.Lazy(), con[k], 2)
     #             MOI.set(model, Gurobi.ConstraintAttribute("lazy"), con, 2)
-                end
             end
+        end
         end
     return
 end
@@ -261,31 +277,42 @@ totalTime = time() - start
 # theta_sol = JuMP.value.(theta)
 # y_pos = findall(y_sol .> 0)
 nodeCount = MOI.get(model, MOI.NodeCount())
-y_pos = findall(y_inc .>0 )
 
-timesFile = open(loc*"/TestInstances/p_Instances_Output/SVI/O_"*dataSet*string(ins)*"_SVI.txt", "a")
-println(timesFile, "dataSet = ", dataSet)
-println(timesFile, "ins = ", ins)
-println(timesFile, "theta = ", theta_sol)
-println(timesFile, "totalTime = ", totalTime)
-println(timesFile, "t_RowGen = ", TimerOutputs.time(to["IP_RowGen"])/10^9)
-println(timesFile, "n_RowGen = ", TimerOutputs.ncalls(to["IP_RowGen"]))
-println(timesFile, "t_ColGen = ", TimerOutputs.time(to["IP_ColGen"])/10^9)
-println(timesFile, "n_ColGen = ", TimerOutputs.ncalls(to["IP_ColGen"]))
-println(timesFile, "x = ", x_inc)
-println(timesFile, "x_i = ", findall(x_inc.>0))
-println(timesFile, "y = ", y_inc[y_pos])
-println(timesFile, "lambda = ", lambda_inc[lambda_pos])
-println(timesFile, "M_pos = ", M_set[y_pos])
-println(timesFile, "P_pos = ", P_set[lambda_pos])
-println(timesFile, "M_set = ", M_set)
-println(timesFile, "P_set = ", P_set)
-println(timesFile,"Node count = ", nodeCount)
-println(timesFile,"MIPGAP_root = ", MIPGAP)
-close(timesFile)
+y_pos = findall(y_inc .>0 )
+lambda_pos = findall(lambda_inc.>0)
+
+if totalTime >= 60 #180
+    timesFile = open("./TestInstances/p_Instances_Output/SVI/O_"*dataSet*string(ins)*"_SVI.txt", "a")
+    println(timesFile, "dataSet = ", dataSet)
+    println(timesFile, "Phase ", phase)
+    println(timesFile, "Started at = ", myRun)
+    println(timesFile, "ins = ", ins)
+    println(timesFile, "theta = ", theta_inc)
+    println(timesFile, "totalTime = ", totalTime)
+    println(timesFile, "t_RowGen = ", TimerOutputs.time(to["IP_RowGen"])/10^9)
+    println(timesFile, "n_RowGen = ", TimerOutputs.ncalls(to["IP_RowGen"]))
+    println(timesFile, "t_ColGen = ", TimerOutputs.time(to["IP_ColGen"])/10^9)
+    println(timesFile, "n_ColGen = ", TimerOutputs.ncalls(to["IP_ColGen"]))
+    println(timesFile, "x = ", x_inc)
+    println(timesFile, "x_i = ", findall(x_inc.>0))
+    println(timesFile, "y = ", y_inc[y_pos])
+    println(timesFile, "lambda = ", lambda_inc[lambda_pos])
+    println(timesFile, "M_pos = ", M_set[y_pos])
+    println(timesFile, "P_pos = ", P_set[lambda_pos])
+    println(timesFile, "M_set = ", M_set)
+    println(timesFile, "P_set = ", P_set)
+    println(timesFile,"Node count = ", nodeCount)
+    println(timesFile,"MIPGAP_root = ", MIPGAP)
+    close(timesFile)
+else
+    timesFile = open("./TestInstances/p_Instances_Output/SVI/LessThanAMinutes_SVI.txt", "a")
+    println(timesFile, "dataSet = ", dataSet, "\tins = ", ins)
+    close(timesFile)
+end
 
 
 println("dataSet ", dataSet, ins)
+println("Phase ", phase)
 println("totalTime = ", totalTime)
 println("\tt_RowGen = ", TimerOutputs.time(to["IP_RowGen"])/10^9)
 println("\tn_RowGen = ", TimerOutputs.ncalls(to["IP_RowGen"]))

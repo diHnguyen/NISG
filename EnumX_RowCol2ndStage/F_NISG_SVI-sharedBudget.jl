@@ -1,0 +1,340 @@
+println("\n===========================")
+println("Algorithm 1 (SVI): F_NISG_SVI-sharedBudget")
+println("===========================")
+using JuMP, Gurobi, Test, Combinatorics, LightGraphs, TimerOutputs, Dates
+
+myRun = Dates.format(now(), "HH:MM:SS")
+
+const gurobi_env = Gurobi.Env()
+# const to = TimerOutput()
+ins = ARGS[1] #:10
+phase = ARGS[2] #:10
+_node = ARGS[3]
+_dens = ARGS[4]
+_BI = ARGS[5] #_L
+_BM = ARGS[6]
+nodeSet = "N"*string(_node)
+density = "d"*string(_dens)
+dataSet = nodeSet*string("_")*density*"_BI_"*_BI*"_BM_"*_BM*"_" #"N30_d10_BI3_BM_12"
+println(dataSet*" = "*string(ins)*"\tRunning..."*myRun)
+println("Phase ", phase)
+#     include("./TestInstances/"*fileName*".jl")
+# global q = []
+include("./TestInstances/sharedBudget/p_Instances/"*nodeSet*string("/")*nodeSet*string("_")*density*"_"*string(ins)*".jl")
+b_x = parse(Int64, _BI)
+b_y = parse(Int64, _BM)
+# println("b_x = ", b_x)
+# include("./TestInstances/p_Instances/"*nodeSet*string("/")*dataSet*string(ins)*".jl")
+global numArcs = length(arcs[:,1])
+# include("./functionEnumFeasX.jl")
+# include("./functionFindQ.jl")
+include("./functionGetCost_SP.jl")
+include("./functionShortestPathBellmanFord.jl")
+# include("./functionGenMonitoring.jl")
+
+#This is the better function to find F (or Q)
+include("./functionFindFValues.jl")
+
+#Exact Row Gen:
+include("./functionIP_RowGen.jl")
+
+#Exact Col Gen:
+include("./functionIP_ColGen.jl")
+
+#Approx Col Gen
+include("./functionLP_ColGen.jl")
+# println("1")
+include("./functionF_SG.jl")
+include("./functionTightenConstraint.jl")
+#Q has numPaths elements, each element is of length = numY
+global F = []
+# f_MP = findf_MP([1,3], [1,3])
+# println(f_MP)
+# break
+M_start = findall(d_x.<=b_x)
+global M_set = [[M_start[1]]]#[EnumY[1]] #EnumX(arcs, b_y, numArcs, d_y)
+global numY = 1 
+# println("1")
+path, gx = shortestPath_BellmanFord(q, arcs, numArcs, origin, destination)
+arcsinPath = findall(path.>0)
+global P_set = [arcsinPath]
+global y_sol = []
+global numPaths = 1
+global newP = true
+global newM = true
+global iter = 0
+# println("1")
+global R = sum(-log(1-q[a]) for a = 1:numArcs)
+println(R)
+println(P_set)
+println(M_set)
+F = updateF(F, P_set, M_set, numY, numPaths)
+# println(d_x[[2,5]])
+# conRefNum = 20# max(200,2*length(P_set))
+# con = Array{JuMP.ConstraintRef}(undef, conRefNum)
+to = TimerOutput()
+global k = 0
+global rootOptGap = 0
+model = direct_model(Gurobi.Optimizer())
+#     set_optimizer_attribute(model, "Presolve", 0)
+#     set_optimizer_attribute(model, "Precrush", 1)
+#     set_optimizer_attribute(model, "DualReductions", 0)
+#     set_optimizer_attribute(model, "PreQLinearize", 0)
+#     set_optimizer_attribute(model, "Heuristics", 0)
+#     set_optimizer_attribute(model, "MIPGap", 0)
+# set_optimizer_attribute(model,"Threads", 1)
+set_optimizer_attribute(model, "LazyConstraints", 1)
+set_optimizer_attribute(model, "OutputFlag", 0)
+#cRefNumLazy = numPaths #length(P_set) #max(700,3*length(P_set))
+global constrLazy = Array{JuMP.ScalarConstraint}(undef, 0) #SVIs constraints
+global constrThetaLazy = Array{JuMP.ScalarConstraint}(undef, 0) #Benders constraints
+# global loc = "./Documents/GitHub/UncertainTarget/EnumX_RowCol2ndStage" #"./Documents/GitHub/UncertainTarget/EnumX_RowCol2ndStage/TestInstances/"
+# println("LogFile", loc*dataSet*string(ins)*".log")
+# set_optimizer_attribute(model, "LogFile", loc*dataSet*string(ins)*".log")
+# println("1")
+# Presolve = 0,
+#         PreCrush = 1,
+#         Heuristics = 0,
+
+@variable(model, x[1:numArcs], Bin)
+@variable(model, theta >= 0)#1e6)
+@objective(model, Min, theta)
+@constraint(model, sum(d_x[a]*x[a] for a=1:numArcs) <= b_x)
+global last_theta = -1
+global start = time()
+cb_calls = Cint[]
+
+global t_exactRow = 0.0
+global t_exactCol = 0.0
+global MIPGAP = 0
+global nodeCount = 0
+global lambda = []
+global lambda_pos = []
+global theta_inc = 1
+global x_inc = []
+global y_inc = []
+global lambda_inc = []
+global xplored = []
+# println("2")
+function my_callback_function(cb_data, cb_where::Cint)
+    global numArcs, arcs, d_x, q, b_x, origin, destination, R, d_y, b_y, y_sol
+    global newP, newM, P_set, M_set, numPaths,numY, iter, theta_now, inner_Obj
+    global k, last_theta, t_exactRow, t_exactCol,lambda_pos,lambda, MIPGAP, nodeCount
+    global theta_inc, x_inc, y_inc, lambda_inc, xplored,constrLazy,constrThetaLazy, start
+    # You can reference variables outside the function as normal
+    push!(cb_calls, cb_where)
+    iter += 1
+    #  println("iter ", iter)
+#     println("cb_where = ", cb_where)
+#     println("GRB_CB_MIPSOL = ", GRB_CB_MIPSOL)
+#     println("GRB_CB_MIPNODE = ", GRB_CB_MIPNODE)
+    # You can query a callback attribute using GRBcbget
+#     MIPGAP = 0
+#     if cb_where == GRB_CB_MIPSOL #|| cb_where == GRB_CB_MIPNODE
+        
+#     end
+    if cb_where == GRB_CB_MIPNODE
+        resultN = Ref{Cdouble}()
+        GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_NODCNT, resultN)
+        nodeCount = resultN[]
+#         println("\n\tMIPNODE_NODCNT ", nodeCount)
+
+        if nodeCount == 0
+            resultO = Ref{Cdouble}()
+            GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBST, resultO)
+            obj = resultO[]
+            # println("\tTime ", time()-start)
+            # println("\tMIPNODE_OBJBST ", obj)
+            resultO = Ref{Cdouble}()
+            GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBND, resultO)
+            objBound = resultO[]
+            # println("\tMIPNODE_OBJBND ", objBound)
+            MIPGAP = (obj - objBound)/obj*100
+            # println("\tMIPGAP = ", MIPGAP)
+#             if resultP[] != GRB_OPTIMAL
+#                 return  # Solution is something other than optimal.
+#             end
+        end
+        
+    end
+    if cb_where == GRB_CB_MIPSOL
+#         resultP = Ref{Cint}()
+#         GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_STATUS, resultP) 
+        
+        resultN = Ref{Cdouble}()
+        GRBcbget(cb_data, cb_where, GRB_CB_MIPSOL_NODCNT, resultN)
+        nodeCount = resultN[]
+#         println("\n\tMIPSOL_NODCNT ", nodeCount)
+        if nodeCount == 0
+            resultO = Ref{Cdouble}()
+            GRBcbget(cb_data, cb_where, GRB_CB_MIPSOL_OBJBST, resultO)
+            obj = resultO[]
+            # println("\tTime ", time()-start)
+            # println("\tMIPSOL_OBJBST ", obj)
+            resultO = Ref{Cdouble}()
+            GRBcbget(cb_data, cb_where, GRB_CB_MIPSOL_OBJBND, resultO)
+            objBound = resultO[]
+            # println("\tMIPSOL_OBJBND ", objBound)
+            MIPGAP = (obj - objBound)/obj*100
+            # println("\tMIPGAP = ", MIPGAP)
+#             if resultP[] != GRB_OPTIMAL
+#                 return  # Solution is something other than optimal.
+#             end
+        end
+        
+        # Before querying `callback_value`, you must call:
+        Gurobi.load_callback_variable_primal(cb_data, cb_where)
+        x_val = callback_value.(Ref(cb_data), x)
+        theta_val = callback_value(cb_data, theta)
+        int_x = findall(x_val.>0)
+        # println("x_val = ", findall(x_val.>0), "\t theta_val", theta_val)
+#          println("M = ", M_set)
+#          println("P = ", P_set)
+        #Solve sub problem
+#         println("3")
+        
+#         P_set, M_set, lambda, pi_, inner_Obj, y_sol, findF = H_SG(x_val)
+#         if findF == true
+#         println("preSG")
+        xFound = false
+        c_index = 0
+        for _index = 1:length(xplored)
+            xSet = xplored[_index]
+            if issubset(int_x, xSet)
+                xFound = true
+                c_index = _index
+            end
+        end
+        
+        
+        if xFound == true
+            for c_index = 1:length(constrThetaLazy)
+                con_ = constrThetaLazy[c_index]
+#                 println("\tconstraint ", con_)
+                MOI.submit(model, MOI.LazyConstraint(cb_data), con_)
+                c2 = constrLazy[c_index]
+#                 println("\tconstraint ", c2)
+                MOI.submit(model, MOI.LazyConstraint(cb_data), c2)
+            end
+        else
+            push!(xplored, int_x)
+            lambda, pi_, inner_Obj, y_sol = F_SG(x_val)
+    #         println("postSG")
+    #         end
+            # println("inner_Obj = ", inner_Obj)
+            lambda_pos = findall(lambda.>0)
+            numPaths = length(P_set)
+            numY = length(M_set)
+    #         println("\ninner_Obj = ", inner_Obj)
+    #         println("lambda ", lambda)
+    #         println("pi_ ", pi_)
+    #     println("4")
+    #         
+    #         println(Q)
+            if inner_Obj < theta_inc
+#                 println(iter, "Updating Incumbent Sol : ", inner_Obj, " \t ", findall(x_val.>0))
+                theta_inc = inner_Obj
+                x_inc = x_val
+                y_inc = y_sol
+                lambda_inc = lambda
+            end
+            TOL = 10^(-5)
+            if (inner_Obj - theta_val) > TOL  
+                
+                k+=1 
+                x_coefs, X_set = tightenConstraint(lambda, pi_,lambda_pos, P_set,numPaths, numArcs)
+                con_ = @build_constraint(theta >= -sum(x_coefs[a]*x[a] for a =1:numArcs)+ pi_)
+                #Old constraint - Before tightening#
+                #con_ = @build_constraint(theta >= -sum(lambda[i]*sum(x[a] for a in P_set[i]) for i=1:numPaths) + pi_)
+                ####################################
+                push!(constrThetaLazy, con_)
+#                 println(con_)
+                w_con = MOI.submit(model, MOI.LazyConstraint(cb_data), con_)
+                
+                #######Taken care of by functionTighteningConstraint #######
+#                 X_set = []
+#                 X_set = reduce(vcat, P_set[lambda_pos])
+#                 unique!(X_set)
+                ############################################################
+                
+#                 println("\tPaths pos ", P_set[lambda_pos])
+                c2 = @build_constraint(sum(x[a] for a in X_set) >= 1)
+                push!(constrLazy, c2)
+#                 println("\tconstraint ", c2)
+                MOI.submit(model, MOI.LazyConstraint(cb_data), c2)
+                
+    #                 println("Typeof = ", typeof(w_con))
+    #             MOI.set(model, Gurobi.Lazy(), con[k], 2)
+    #             MOI.set(model, Gurobi.ConstraintAttribute("lazy"), con, 2)
+            end
+        end
+        end
+    return
+end
+#     You _must_ set this parameter if using lazy constraints.
+MOI.set(model, MOI.RawParameter("LazyConstraints"), 1)
+MOI.set(model, Gurobi.CallbackFunction(), my_callback_function)
+optimize!(model)
+    
+#     println(model)
+totalTime = time() - start
+
+# x_sol = JuMP.value.(x)
+# theta_sol = JuMP.value.(theta)
+# y_pos = findall(y_sol .> 0)
+nodeCount = MOI.get(model, MOI.NodeCount())
+
+y_pos = findall(y_inc .>0 )
+lambda_pos = findall(lambda_inc.>0)
+
+if totalTime >= 60 #180
+    timesFile = open("./TestInstances/sharedBudget/p_Instances_Output/SVI/O_"*dataSet*string(ins)*"_SVI.txt", "a")
+    println(timesFile, "dataSet = ", dataSet)
+    println(timesFile, "Phase ", phase)
+    println(timesFile, "Started at = ", myRun)
+    println(timesFile, "ins = ", ins)
+    println(timesFile, "theta = ", theta_inc)
+    println(timesFile, "totalTime = ", totalTime)
+    println(timesFile, "t_RowGen = ", TimerOutputs.time(to["IP_RowGen"])/10^9)
+    println(timesFile, "n_RowGen = ", TimerOutputs.ncalls(to["IP_RowGen"]))
+    println(timesFile, "t_ColGen = ", TimerOutputs.time(to["IP_ColGen"])/10^9)
+    println(timesFile, "n_ColGen = ", TimerOutputs.ncalls(to["IP_ColGen"]))
+    println(timesFile, "x = ", x_inc)
+    println(timesFile, "x_i = ", findall(x_inc.>0))
+    println(timesFile, "y = ", y_inc[y_pos])
+    println(timesFile, "lambda = ", lambda_inc[lambda_pos])
+    println(timesFile, "M_pos = ", M_set[y_pos])
+    println(timesFile, "P_pos = ", P_set[lambda_pos])
+    println(timesFile, "M_set = ", M_set)
+    println(timesFile, "P_set = ", P_set)
+    println(timesFile,"Node count = ", nodeCount)
+    println(timesFile,"MIPGAP_root = ", MIPGAP)
+    close(timesFile)
+else
+    timesFile = open("./TestInstances/sharedBudget/p_Instances_Output/SVI/LessThanAMinutes_SVI.txt", "a")
+    println(timesFile, "dataSet = ", dataSet, "\tins = ", ins)
+    close(timesFile)
+end
+
+
+println("dataSet ", dataSet, ins)
+println("Phase ", phase)
+println("totalTime = ", totalTime)
+println("\tt_RowGen = ", TimerOutputs.time(to["IP_RowGen"])/10^9)
+println("\tn_RowGen = ", TimerOutputs.ncalls(to["IP_RowGen"]))
+println("\tt_ColGen = ", TimerOutputs.time(to["IP_ColGen"])/10^9)
+println("\tn_ColGen = ", TimerOutputs.ncalls(to["IP_ColGen"]))
+#RETURN INCUMBENT SOLUTION!!!
+println("x = ", x_inc)
+println("x_i = ", findall(x_inc.>0))
+println("theta = ", theta_inc)
+println("M_set = ", length(M_set))
+
+println("y = ", y_inc[y_pos])
+println("lambda = ", lambda_inc[lambda_pos])
+println("M_pos = ", M_set[y_pos])
+println("P_pos = ", P_set[lambda_pos])
+println("M_set = ", M_set)
+println("P_set = ", P_set)
+println("Node count = ", nodeCount)
+println("MIPGAP_root = ", MIPGAP)
