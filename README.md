@@ -1,7 +1,7 @@
 # A Two-Stage Network Interdiction-Monitoring Game - #NISG
 # Di H. Nguyen, Yongjia Song, and J. Cole Smith
 
-Link to paper: TBD
+Link to paper: https://onlinelibrary.wiley.com/doi/full/10.1002/net.22136
 
 Abstract: We study a network interdiction problem involving two agents: a defender and an evader. 
 The evader seeks to traverse a path from a source node to a sink node in a directed network without being detected. 
